@@ -8,7 +8,7 @@ NVCCFLAGS += -D_FORCE_INLINES -ccbin=$(CXX) -Xcompiler $(COMMON_FLAGS) -gencode 
 %.o: %.cu
 	nvcc $(NVCCFLAGS) -dc $< -o $@
 
-objects := fft_cuda.o fft.o fft_cuda3.o fft_cuda2.o fft_cuda1.o
+objects := fft_cuda.o fft.o fft_cuda4.o fft_cuda3.o fft_cuda2.o fft_cuda1.o
 
 all: ${objects}
 	nvcc $(NVCCFLAGS) -o fft ${objects}

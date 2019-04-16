@@ -151,9 +151,7 @@ void run(char *name, complex_t *reference_data, fft_t fft, complex_t *ip,
   clock_gettime(CLOCK_REALTIME, &etime);
 
   if (reference_data != NULL) {
-    if (compare(reference_data, op, size)) {
-      return;
-    }
+    compare(reference_data, op, size);
   }
 
   print_array(op, size);
@@ -183,11 +181,12 @@ int main (int argc, char *argv[])
 
   cuda_init();
   run("dft", NULL, dft, ip, rop, size, 0);
-  run("fft-recursive", rop, fft_recursive, ip, op, size, 1);
-  run("fft-serial", rop, fft_serial, ip, op, size, 1);
+  //run("fft-recursive", rop, fft_recursive, ip, op, size, 1);
+  //run("fft-serial", rop, fft_serial, ip, op, size, 1);
   //run("fft-cuda1", rop, fft_cuda1, ip, op, size, 1);
-  run("fft-cuda2", rop, fft_cuda2, ip, op, size, 1);
-  run("fft-cuda3", rop, fft_cuda3, ip, op, size, 1);
+  //run("fft-cuda2", rop, fft_cuda2, ip, op, size, 1);
+  //run("fft-cuda3", rop, fft_cuda3, ip, op, size, 1);
+  run("fft-cuda4", rop, fft_cuda4, ip, op, size, 1);
 
   cuda_free();
 

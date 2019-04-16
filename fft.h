@@ -33,6 +33,8 @@ complex_t complex_mult(complex_t a, complex_t b);
 EXTERNC void fft_cuda1(complex_t *_ip, complex_t *_op, int size);
 EXTERNC void fft_cuda2(complex_t *_ip, complex_t *_op, int size);
 EXTERNC void fft_cuda3(complex_t *_ip, complex_t *_op, int size);
+EXTERNC void fft_cuda4(complex_t *_ip, complex_t *_op, int size);
+
 EXTERNC void cuda_init();
 EXTERNC void cuda_free();
 

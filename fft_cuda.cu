@@ -27,6 +27,18 @@ void cuda_free()
 
 #define THREADS_PER_BLOCK 128
 
+__device__ int reverse(int j, int m)
+{
+  j = (j & 0x55555555) << 1 | (j & 0xAAAAAAAA) >> 1;
+  j = (j & 0x33333333) << 2 | (j & 0xCCCCCCCC) >> 2;
+  j = (j & 0x0F0F0F0F) << 4 | (j & 0xF0F0F0F0) >> 4;
+  j = (j & 0x00FF00FF) << 8 | (j & 0xFF00FF00) >> 8;
+
+  j >>= (16 - m);
+
+  return j;
+}
+
 __global__ void fft_cuda_reverse(double2 *ip, double2 *op, int m, int size)
 {
   int tid = threadIdx.x + blockDim.x * blockIdx.x;

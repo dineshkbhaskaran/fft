@@ -1,19 +1,5 @@
 #include <fft_cuda.cuh>
 
-__device__ int reverse(int n, int m)
-{
-  int j = n;
-
-  j = (j & 0x55555555) << 1 | (j & 0xAAAAAAAA) >> 1;
-  j = (j & 0x33333333) << 2 | (j & 0xCCCCCCCC) >> 2;
-  j = (j & 0x0F0F0F0F) << 4 | (j & 0xF0F0F0F0) >> 4;
-  j = (j & 0x00FF00FF) << 8 | (j & 0xFF00FF00) >> 8;
-
-  j >>= (16 - m);
-
-  return j;
-}
-
 __global__ void fft_cuda3_kernel(double2 *ip, double2 *op, int m, int size)
 {
   __shared__ double2 shared_op[2048];
@@ -83,7 +69,7 @@ void fft_cuda3(complex_t *_ip, complex_t *_op, int size)
   gpuErrchk(cudaMemcpy(dev_ip, ip, size*sizeof(double2), cudaMemcpyHostToDevice));
  
   /* Can only work until size 2048 */
-  int threads = (512 < size) ? 512 : size;
+  int threads = (128 < size) ? 128 : size;
   dim3 block(threads, 1, 1);
   dim3 grid(size/threads, 1, 1);
 

@@ -16,6 +16,7 @@ __device__ double2 cuda_complex_sub(double2 a, double2 b);
 __device__ double2 cuda_complex_add(double2 a, double2 b);
 __device__ double2 cuda_complex_mult(double2 a, double2 b);
 
+__device__ int reverse(int j, int m);
 __global__ void fft_cuda_reverse(double2 *ip, double2 *op, int m, int size);
 
 extern double2 *dev_ip, *dev_op;
