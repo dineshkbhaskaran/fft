@@ -185,7 +185,7 @@ int main (int argc, char *argv[])
   run("dft", NULL, dft, ip, rop, size, 0);
   run("fft-recursive", rop, fft_recursive, ip, op, size, 1);
   run("fft-serial", rop, fft_serial, ip, op, size, 1);
-  //run("fft-cuda1", rop, fft_cuda1, ip, op, size, 1);
+  run("fft-cuda1", rop, fft_cuda1, ip, op, size, 1);
   run("fft-cuda2", rop, fft_cuda2, ip, op, size, 1);
 
   cuda_free();
