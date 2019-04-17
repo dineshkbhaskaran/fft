@@ -1,7 +1,7 @@
 #include <fft_cuda.cuh>
 
-double2 *dev_ip;
-double2 *dev_op;
+complex_t *dev_ip;
+complex_t *dev_op;
 
 void gpuAssert(cudaError_t code, const char *file, int line, bool abort)
 {
@@ -15,8 +15,8 @@ void gpuAssert(cudaError_t code, const char *file, int line, bool abort)
 
 void cuda_init()
 {
-  gpuErrchk(cudaMalloc((void **)&dev_ip, 4096*sizeof(double2))); 
-  gpuErrchk(cudaMalloc((void **)&dev_op, 4096*sizeof(double2))); 
+  gpuErrchk(cudaMalloc((void **)&dev_ip, 4096*sizeof(complex_t))); 
+  gpuErrchk(cudaMalloc((void **)&dev_op, 4096*sizeof(complex_t))); 
 }
 
 void cuda_free()
@@ -39,7 +39,7 @@ __device__ int reverse(int j, int m)
   return j;
 }
 
-__global__ void fft_cuda_reverse(double2 *ip, double2 *op, int m, int size)
+__global__ void fft_cuda_reverse(complex_t *ip, complex_t *op, int m, int size)
 {
   int tid = threadIdx.x + blockDim.x * blockIdx.x;
 
@@ -60,17 +60,44 @@ __global__ void fft_cuda_reverse(double2 *ip, double2 *op, int m, int size)
   op[tid] = ip[j];
 }
 
-__device__ double2 cuda_complex_sub(double2 a, double2 b)
+__global__ void fft_cuda_bfly4(complex_t *ip, complex_t *op, int m, int size)
 {
-  return (double2) {a.x - b.x, a.y - b.y};
+  int tid = threadIdx.x + blockDim.x * blockIdx.x;
+
+  if (4 * tid < size) {
+    complex_t eps = (complex_t){0.0, -1.0};
+
+    complex_t ip0 = ip[reverse(4*tid+0, m)];
+    complex_t ip1 = ip[reverse(4*tid+1, m)];
+    complex_t ip2 = ip[reverse(4*tid+2, m)];
+    complex_t ip3 = ip[reverse(4*tid+3, m)];
+
+    complex_t t0 = cuda_complex_add(ip0, ip1);
+    complex_t t1 = cuda_complex_add(ip2, ip3);
+
+    complex_t s0 = cuda_complex_sub(ip0, ip1);
+    complex_t s1 = cuda_complex_mult(cuda_complex_sub(ip2, ip3), eps);
+
+    op[4*tid+0] = cuda_complex_add(t0, t1);
+    op[4*tid+2] = cuda_complex_sub(t0, t1);
+
+    op[4*tid+1] = cuda_complex_add(s0, s1);
+    op[4*tid+3] = cuda_complex_sub(s0, s1);
+  }
+
 }
 
-__device__ double2 cuda_complex_add(double2 a, double2 b)
+__device__ complex_t cuda_complex_sub(complex_t a, complex_t b)
 {
-  return (double2) {a.x + b.x, a.y + b.y};
+  return (complex_t) {a.x - b.x, a.y - b.y};
 }
 
-__device__ double2 cuda_complex_mult(double2 a, double2 b)
+__device__ complex_t cuda_complex_add(complex_t a, complex_t b)
 {
-  return (double2) {a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x};
+  return (complex_t) {a.x + b.x, a.y + b.y};
+}
+
+__device__ complex_t cuda_complex_mult(complex_t a, complex_t b)
+{
+  return (complex_t) {a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x};
 }

@@ -1,8 +1,8 @@
 #include <fft_cuda.cuh>
 
-__global__ void fft_cuda2_kernel(double2 *ip, double2 *op, int m, int size)
+__global__ void fft_cuda2_kernel(complex_t *ip, complex_t *op, int m, int size)
 {
-  __shared__ double2 shared_op[2048];
+  __shared__ complex_t shared_op[2048];
   int tid = threadIdx.x + blockDim.x * blockIdx.x;
 
   if (tid == 0) {
@@ -25,17 +25,17 @@ __global__ void fft_cuda2_kernel(double2 *ip, double2 *op, int m, int size)
 
   for (int i = 0; i < m; i++) {
     int len = 1 << i;  /* the length of half block at level m*/
-    double2 factor = {cos(-2.0 * PI / (2 * len)), sin(-2.0 * PI / (2 * len))};
+    complex_t factor = {cos(-2.0 * PI / (2 * len)), sin(-2.0 * PI / (2 * len))};
 
     int block_len = (len << 1);
     int nblocks = size / block_len;
 
     if (tid < nblocks) {
       int j = tid * block_len;
-      double2 omega = {1, 0};
+      complex_t omega = {1, 0};
 
       for (int k = j; k < j+len; k++) {
-        double2 temp = cuda_complex_mult(omega, shared_op[k+len]);
+        complex_t temp = cuda_complex_mult(omega, shared_op[k+len]);
 
         shared_op[k+len] = cuda_complex_sub(shared_op[k], temp);
         shared_op[k    ] = cuda_complex_add(shared_op[k], temp);
@@ -55,10 +55,10 @@ __global__ void fft_cuda2_kernel(double2 *ip, double2 *op, int m, int size)
 void fft_cuda2(complex_t *_ip, complex_t *_op, int size)
 {
   int m = (int)log2((double)size);
-  double2 *ip = (double2 *)_ip;
-  double2 *op = (double2 *)_op;
+  complex_t *ip = (complex_t *)_ip;
+  complex_t *op = (complex_t *)_op;
 
-  gpuErrchk(cudaMemcpy(dev_ip, ip, size*sizeof(double2), cudaMemcpyHostToDevice));
+  gpuErrchk(cudaMemcpy(dev_ip, ip, size*sizeof(complex_t), cudaMemcpyHostToDevice));
  
   /* Can only work until size 2048 */
   int threads = (1024 < size) ? 1024 : size;
@@ -68,5 +68,5 @@ void fft_cuda2(complex_t *_ip, complex_t *_op, int size)
   fft_cuda2_kernel<<<grid, block>>> (dev_ip, dev_op, m, size);
   gpuErrchk(cudaPeekAtLastError());
 
-  gpuErrchk(cudaMemcpy(op, dev_op, size*sizeof(double2), cudaMemcpyDeviceToHost));
+  gpuErrchk(cudaMemcpy(op, dev_op, size*sizeof(complex_t), cudaMemcpyDeviceToHost));
 }

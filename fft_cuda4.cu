@@ -1,6 +1,6 @@
 #include <fft_cuda.cuh>
 
-__global__ void fft_cuda3_kernel(complex_t *ip, complex_t *op, int m, int size)
+__global__ void fft_cuda4_kernel(complex_t *ip, complex_t *op, int m, int size)
 {
   __shared__ complex_t shared_op[2048];
   int tid = threadIdx.x + blockDim.x * blockIdx.x;
@@ -29,30 +29,28 @@ __global__ void fft_cuda3_kernel(complex_t *ip, complex_t *op, int m, int size)
   __syncthreads();
 
   for (int i = 2; i < m; i++) {
-    int len = 1 << i;  /* the length of half bfly at level m*/
-    complex_t factor = {cos(-2.0 * PI / (2 * len)), sin(-2.0 * PI / (2 * len))};
+    int bfly_size = (1 << (i + 1));
+    int bfly_half = (1 << i);
 
-    int bfly_len = (len << 1);
-    int nbfly = size / bfly_len;
+    int k = tid & ((1 << i ) - 1);
+    int bfly_idx = tid >> i;
 
-    if (tid < nbfly) {
-      int j = tid * bfly_len;
-      complex_t omega = {1, 0};
-
-      for (int k = j; k < j+len; k++) {
-        complex_t temp = cuda_complex_mult(omega, shared_op[k+len]);
-
-        shared_op[k+len] = cuda_complex_sub(shared_op[k], temp);
-        shared_op[k    ] = cuda_complex_add(shared_op[k], temp);
-
-        omega = cuda_complex_mult(omega, factor);
-      }
+    if (tid >= size/2) {
+      continue;
     }
+    
+    double angle = (-2.0 * PI * k / bfly_size);
+    complex_t omega = {cos(angle), sin(angle)};
+
+    int off = bfly_idx * bfly_size;
+    complex_t temp = cuda_complex_mult(omega, shared_op[off + k + bfly_half]);
+
+    shared_op[off + k + bfly_half] = cuda_complex_sub(shared_op[off + k], temp);
+    shared_op[off + k]             = cuda_complex_add(shared_op[off + k], temp);
 
     __syncthreads();
   }
 
-  __syncthreads();
 
   if (2 * tid < size) {
     op[2*tid+0] = shared_op[2*tid+0];
@@ -60,7 +58,7 @@ __global__ void fft_cuda3_kernel(complex_t *ip, complex_t *op, int m, int size)
   }
 }
 
-void fft_cuda3(complex_t *_ip, complex_t *_op, int size)
+void fft_cuda4(complex_t *_ip, complex_t *_op, int size)
 {
   int m = (int)log2((double)size);
   complex_t *ip = (complex_t *)_ip;
@@ -73,7 +71,7 @@ void fft_cuda3(complex_t *_ip, complex_t *_op, int size)
   dim3 block(threads, 1, 1);
   dim3 grid(size/threads, 1, 1);
 
-  fft_cuda3_kernel<<<grid, block>>> (dev_ip, dev_op, m, size);
+  fft_cuda4_kernel<<<grid, block>>> (dev_ip, dev_op, m, size);
   gpuErrchk(cudaPeekAtLastError());
 
   gpuErrchk(cudaMemcpy(op, dev_op, size*sizeof(complex_t), cudaMemcpyDeviceToHost));

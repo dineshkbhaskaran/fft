@@ -5,7 +5,7 @@ void print_array(complex_t *a, int n)
 #ifdef DEBUG
   for (int i = 0; i < n; i++) {
     if (i != 0 && i % 4 == 0) printf ("\n");
-    printf ("%10.4f %10.4f ", a[i].r, a[i].i);
+    printf ("%10.4f %10.4f ", a[i].x, a[i].y);
   }
 
   printf ("\n");
@@ -17,11 +17,11 @@ int compare(complex_t *a, complex_t *b, int size)
   double epsilon = 10e-6;
 
   for (int i = 0; i < size; i++) {
-    if (fabs(a[i].r - b[i].r) > epsilon) {
-      printf ("Arrays dont match at %d %f %f\n", i, a[i].r, b[i].r);
+    if (fabs(a[i].x - b[i].x) > epsilon) {
+      printf ("Arrays dont match at %d %f %f\n", i, a[i].x, b[i].x);
       return 1;
-    } else if (fabs(a[i].i - b[i].i) > epsilon) {
-      printf ("Arrays dont match at %d %f %f\n", i, a[i].i, b[i].i);
+    } else if (fabs(a[i].y - b[i].y) > epsilon) {
+      printf ("Arrays dont match at %d %f %f\n", i, a[i].y, b[i].y);
       return 1;
     }
   }
@@ -31,17 +31,17 @@ int compare(complex_t *a, complex_t *b, int size)
 
 complex_t complex_sub(complex_t a, complex_t b)
 {
-  return (complex_t) {a.r - b.r, a.i - b.i};
+  return (complex_t) {a.x - b.x, a.y - b.y};
 }
 
 complex_t complex_add(complex_t a, complex_t b)
 {
-  return (complex_t) {a.r + b.r, a.i + b.i};
+  return (complex_t) {a.x + b.x, a.y + b.y};
 }
 
 complex_t complex_mult(complex_t a, complex_t b)
 {
-  return (complex_t) {a.r * b.r - a.i * b.i, a.r * b.i + a.i * b.r};
+  return (complex_t) {a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x};
 }
 
 /* Recursive FFT */
@@ -176,17 +176,18 @@ int main (int argc, char *argv[])
 
   srand(5126);
   for (int i = 0; i < size; i++) {
-    ip[i].r = rand() % 255;
+    ip[i].x = rand() % 255;
   }
 
   cuda_init();
   run("dft", NULL, dft, ip, rop, size, 0);
-  //run("fft-recursive", rop, fft_recursive, ip, op, size, 1);
-  //run("fft-serial", rop, fft_serial, ip, op, size, 1);
-  //run("fft-cuda1", rop, fft_cuda1, ip, op, size, 1);
-  //run("fft-cuda2", rop, fft_cuda2, ip, op, size, 1);
-  //run("fft-cuda3", rop, fft_cuda3, ip, op, size, 1);
+  run("fft-recursive", rop, fft_recursive, ip, op, size, 1);
+  run("fft-serial", rop, fft_serial, ip, op, size, 1);
+  run("fft-cuda1", rop, fft_cuda1, ip, op, size, 1);
+  run("fft-cuda2", rop, fft_cuda2, ip, op, size, 1);
+  run("fft-cuda3", rop, fft_cuda3, ip, op, size, 1);
   run("fft-cuda4", rop, fft_cuda4, ip, op, size, 1);
+  run("fft-cuda5", rop, fft_cuda5, ip, op, size, 1);
 
   cuda_free();
 
