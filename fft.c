@@ -118,6 +118,8 @@ void fft_serial(complex_t *ip, complex_t *op, int size)
         op[k+len] = complex_sub(op[k], temp);
         op[k    ] = complex_add(op[k], temp);
 
+        //printf("m=%d k=%d,%d %f %f %f %f %f %f\n", i, k, k+len, omega.x, omega.y, op[k].x, op[k].y, op[k+len].x, op[k+len].y);
+
         omega = complex_mult(omega, factor);
       }
     }
@@ -181,13 +183,14 @@ int main (int argc, char *argv[])
 
   cuda_init();
   run("dft", NULL, dft, ip, rop, size, 0);
-  run("fft-recursive", rop, fft_recursive, ip, op, size, 1);
-  run("fft-serial", rop, fft_serial, ip, op, size, 1);
-  run("fft-cuda1", rop, fft_cuda1, ip, op, size, 1);
-  run("fft-cuda2", rop, fft_cuda2, ip, op, size, 1);
-  run("fft-cuda3", rop, fft_cuda3, ip, op, size, 1);
-  run("fft-cuda4", rop, fft_cuda4, ip, op, size, 1);
+  //run("fft-recursive", rop, fft_recursive, ip, op, size, 1);
+  //run("fft-serial", rop, fft_serial, ip, op, size, 1);
+  //run("fft-cuda1", rop, fft_cuda1, ip, op, size, 1);
+  //run("fft-cuda2", rop, fft_cuda2, ip, op, size, 1);
+  //run("fft-cuda3", rop, fft_cuda3, ip, op, size, 1);
+  //run("fft-cuda4", rop, fft_cuda4, ip, op, size, 1);
   run("fft-cuda5", rop, fft_cuda5, ip, op, size, 1);
+  run("fft-cuda6", rop, fft_cuda6, ip, op, size, 1);
 
   cuda_free();
 

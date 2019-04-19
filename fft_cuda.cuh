@@ -15,7 +15,8 @@ __device__ complex_t cuda_complex_mult(complex_t a, complex_t b);
 __device__ int reverse(int j, int m);
 __global__ void fft_cuda_reverse(complex_t *ip, complex_t *op, int m, int size);
 __global__ void fft_cuda_bfly4(complex_t *ip, complex_t *op, int m, int size);
+__global__ void fft_cuda_bfly8(complex_t *ip, complex_t *op, int m, int size);
 
-extern complex_t *dev_ip, *dev_op;
+extern complex_t *dev_ip, *dev_op, *dev_bm;
 
 #endif //__FFT_CUDA_H__
